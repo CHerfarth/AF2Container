@@ -1,0 +1,48 @@
+Bootstrap: docker
+From: nvcr.io/nvidia/pytorch:23.01-py3
+
+%files
+    environment.yml /opt/environment.yml
+    alphafold /opt/alphafold
+    run_alphafold.py /opt/run_alphafold.py
+    run_alphafold.sh /opt/run_alphafold.sh
+
+%environment
+    export PATH=/opt/miniconda/envs/alphafold/bin:$PATH
+    export CONDA_PREFIX=/opt/miniconda/envs/alphafold
+    export LD_LIBRARY_PATH=/opt/miniconda/envs/alphafold/lib:$LD_LIBRARY_PATH
+    export PYTHONNOUSERSITE=1
+
+%post
+    echo "[INFO] Updating apt cache"
+    apt-get update || true
+    apt-get install -y \
+        libglib2.0-0 \
+        ca-certificates \
+        wget \
+        git \
+        tar \
+        bzip2 || true
+
+    echo "[INFO] Installing Miniconda"
+    wget https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh -O /tmp/miniconda.sh
+    bash /tmp/miniconda.sh -b -p /opt/miniconda
+    rm /tmp/miniconda.sh
+    export PATH=/opt/miniconda/bin:$PATH
+
+    echo "[INFO] Creating Conda environment from environment.yml"
+    conda env create -f /opt/environment.yml -n alphafold
+
+    echo "[INFO] Cleaning up"
+    conda clean -afy
+
+    # Make run script executable
+    chmod +x /opt/run_alphafold.sh
+
+%runscript
+    exec /opt/run_alphafold.sh "$@"
+
+%labels
+    Author Arman Thariani
+    Version v1.0
+    Description "Minimal Singularity container for AlphaFold using alphafold Conda environment"
