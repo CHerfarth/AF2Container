@@ -30,6 +30,13 @@ From: nvcr.io/nvidia/pytorch:23.01-py3
     rm /tmp/miniconda.sh
     export PATH=/opt/miniconda/bin:$PATH
 
+    echo "[INFO] Configuring Conda to avoid defaults"
+    conda config --system --set always_yes yes
+    conda config --system --remove channels defaults || true
+    conda config --system --add channels conda-forge
+    conda config --system --add channels nvidia
+    conda config --system --add channels bioconda
+
     echo "[INFO] Creating Conda environment from environment.yml"
     conda env create -f /opt/environment.yml -n alphafold
 
