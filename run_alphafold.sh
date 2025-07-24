@@ -7,87 +7,122 @@ usage() {
         echo "Please make sure all required parameters are given"
         echo "Usage: $0 <OPTIONS>"
         echo "Required Parameters:"
-        echo "-d <data_dir>         Path to directory of supporting data"
-        echo "-o <output_dir>       Path to a directory that will store the results."
-        echo "-f <fasta_paths>      Path to FASTA files containing sequences. If a FASTA file contains multiple sequences, then it will be folded as a multimer. To fold more sequences one after another, write the files separated by a comma"
-        echo "-t <max_template_date> Maximum template release date to consider (ISO-8601 format - i.e. YYYY-MM-DD). Important if folding historical test sets"
+        echo "-d, --data_dir <data_dir>         Path to directory of supporting data"
+        echo "-o, --output_dir <output_dir>     Path to a directory that will store the results."
+        echo "-f, --fasta_paths <fasta_paths>   Path to FASTA files containing sequences. If a FASTA file contains multiple sequences, then it will be folded as a multimer. To fold more sequences one after another, write the files separated by a comma"
+        echo "-t, --max_template_date <max_template_date> Maximum template release date to consider (ISO-8601 format - i.e. YYYY-MM-DD). Important if folding historical test sets"
         echo "Optional Parameters:"
-        echo "-g <use_gpu>          Enable NVIDIA runtime to run with GPUs (default: true)"
-        echo "-r <run_relax>        Whether to run the final relaxation step on the predicted models. Turning relax off might result in predictions with distracting stereochemical violations but might help in case you are having issues with the relaxation stage (default: true)"
-        echo "-e <enable_gpu_relax> Run relax on GPU if GPU is enabled (default: true)"
-        echo "-n <openmm_threads>   OpenMM threads (default: all available cores)"
-        echo "-a <gpu_devices>      Comma separated list of devices to pass to 'CUDA_VISIBLE_DEVICES' (default: 0)"
-        echo "-m <model_preset>     Choose preset model configuration - the monomer model, the monomer model with extra ensembling, monomer model with pTM head, or multimer model (default: 'monomer')"
-        echo "-c <db_preset>        Choose preset MSA database configuration - smaller genetic database config (reduced_dbs) or full genetic database config (full_dbs) (default: 'full_dbs')"
-        echo "-p <use_precomputed_msas> Whether to read MSAs that have been written to disk. WARNING: This will not check if the sequence, database or configuration have changed (default: 'false')"
-        echo "-l <num_multimer_predictions_per_model> How many predictions (each with a different random seed) will be generated per model. E.g. if this is 2 and there are 5 models then there will be 10 predictions per input. Note: this FLAG only applies if model_preset=multimer (default: 5)"
-        echo "-b <benchmark>        Run multiple JAX model evaluations to obtain a timing that excludes the compilation time, which should be more indicative of the time required for inferencing many proteins (default: 'false')"
+        echo "-g, --use_gpu <use_gpu>           Enable NVIDIA runtime to run with GPUs (default: true)"
+        echo "-r, --run_relax <run_relax>       Whether to run the final relaxation step on the predicted models. Turning relax off might result in predictions with distracting stereochemical violations but might help in case you are having issues with the relaxation stage (default: true)"
+        echo "-e, --enable_gpu_relax <enable_gpu_relax> Run relax on GPU if GPU is enabled (default: true)"
+        echo "-n, --openmm_threads <openmm_threads>   OpenMM threads (default: all available cores)"
+        echo "-a, --gpu_devices <gpu_devices>   Comma separated list of devices to pass to 'CUDA_VISIBLE_DEVICES' (default: 0)"
+        echo "-m, --model_preset <model_preset> Choose preset model configuration - the monomer model, the monomer model with extra ensembling, monomer model with pTM head, or multimer model (default: 'monomer')"
+        echo "-c, --db_preset <db_preset>       Choose preset MSA database configuration - smaller genetic database config (reduced_dbs) or full genetic database config (full_dbs) (default: 'full_dbs')"
+        echo "-p, --use_precomputed_msas <use_precomputed_msas> Whether to read MSAs that have been written to disk. WARNING: This will not check if the sequence, database or configuration have changed (default: 'false')"
+        echo "-l, --num_multimer_predictions_per_model <num_multimer_predictions_per_model> How many predictions (each with a different random seed) will be generated per model. E.g. if this is 2 and there are 5 models then there will be 10 predictions per input. Note: this FLAG only applies if model_preset=multimer (default: 5)"
+        echo "-b, --benchmark <benchmark>       Run multiple JAX model evaluations to obtain a timing that excludes the compilation time, which should be more indicative of the time required for inferencing many proteins (default: 'false')"
         echo ""
         exit 1
 }
 
-while getopts ":d:o:f:t:g:r:e:n:a:m:c:p:l:b:" i; do
-	echo "[DEBUG] Received arguments: $@"
-        case "${i}" in
-        d)
-                data_dir=$OPTARG
-        ;;
-        o)
-                output_dir=$OPTARG
-        ;;
-        f)
-                fasta_path=$OPTARG
-        ;;
-        t)
-                max_template_date=$OPTARG
-        ;;
-        g)
-                use_gpu=$OPTARG
-        ;;
-        r)
-                run_relax=$OPTARG
-        ;;
-        e)
-                enable_gpu_relax=$OPTARG
-        ;;
-        n)
-                openmm_threads=$OPTARG
-        ;;
-        a)
-                gpu_devices=$OPTARG
-        ;;
-        m)
-                model_preset=$OPTARG
-        ;;
-        c)
-                db_preset=$OPTARG
-        ;;
-        p)
-                use_precomputed_msas=$OPTARG
-        ;;
-        l)
-                num_multimer_predictions_per_model=$OPTARG
-        ;;
-        b)
-                benchmark=$OPTARG
-        ;;
-        esac
-	echo "[DEBUG] Parsed parameters:"
-	echo "  data_dir = $data_dir"
-	echo "  output_dir = $output_dir"
-	echo "  fasta_path = $fasta_path"
-	echo "  max_template_date = $max_template_date"
-	echo "  use_gpu = $use_gpu"
-	echo "  run_relax = $run_relax"
-	echo "  enable_gpu_relax = $enable_gpu_relax"
-	echo "  openmm_threads = $openmm_threads"
-	echo "  gpu_devices = $gpu_devices"
-	echo "  model_preset = $model_preset"
-	echo "  db_preset = $db_preset"
-	echo "  use_precomputed_msas = $use_precomputed_msas"
-	echo "  num_multimer_predictions_per_model = $num_multimer_predictions_per_model"
-	echo "  benchmark = $benchmark"
+# Parse command line arguments using getopt
+TEMP=$(getopt -o d:o:f:t:g:r:e:n:a:m:c:p:l:b: --long data_dir:,output_dir:,fasta_paths:,max_template_date:,use_gpu:,run_relax:,enable_gpu_relax:,openmm_threads:,gpu_devices:,model_preset:,db_preset:,use_precomputed_msas:,num_multimer_predictions_per_model:,benchmark: -n "$0" -- "$@")
+
+if [ $? != 0 ] ; then 
+    echo "Error parsing arguments" >&2 
+    usage
+fi
+
+# Note the quotes around `$TEMP': they are essential!
+eval set -- "$TEMP"
+
+echo "[DEBUG] Received arguments: $@"
+
+while true ; do
+    case "$1" in
+        -d|--data_dir)
+            data_dir="$2"
+            shift 2
+            ;;
+        -o|--output_dir)
+            output_dir="$2"
+            shift 2
+            ;;
+        -f|--fasta_paths)
+            fasta_path="$2"
+            shift 2
+            ;;
+        -t|--max_template_date)
+            max_template_date="$2"
+            shift 2
+            ;;
+        -g|--use_gpu)
+            use_gpu="$2"
+            shift 2
+            ;;
+        -r|--run_relax)
+            run_relax="$2"
+            shift 2
+            ;;
+        -e|--enable_gpu_relax)
+            enable_gpu_relax="$2"
+            shift 2
+            ;;
+        -n|--openmm_threads)
+            openmm_threads="$2"
+            shift 2
+            ;;
+        -a|--gpu_devices)
+            gpu_devices="$2"
+            shift 2
+            ;;
+        -m|--model_preset)
+            model_preset="$2"
+            shift 2
+            ;;
+        -c|--db_preset)
+            db_preset="$2"
+            shift 2
+            ;;
+        -p|--use_precomputed_msas)
+            use_precomputed_msas="$2"
+            shift 2
+            ;;
+        -l|--num_multimer_predictions_per_model)
+            num_multimer_predictions_per_model="$2"
+            shift 2
+            ;;
+        -b|--benchmark)
+            benchmark="$2"
+            shift 2
+            ;;
+        --)
+            shift
+            break
+            ;;
+        *)
+            echo "Internal error!" >&2
+            exit 1
+            ;;
+    esac
 done
+
+echo "[DEBUG] Parsed parameters:"
+echo "  data_dir = $data_dir"
+echo "  output_dir = $output_dir"
+echo "  fasta_path = $fasta_path"
+echo "  max_template_date = $max_template_date"
+echo "  use_gpu = $use_gpu"
+echo "  run_relax = $run_relax"
+echo "  enable_gpu_relax = $enable_gpu_relax"
+echo "  openmm_threads = $openmm_threads"
+echo "  gpu_devices = $gpu_devices"
+echo "  model_preset = $model_preset"
+echo "  db_preset = $db_preset"
+echo "  use_precomputed_msas = $use_precomputed_msas"
+echo "  num_multimer_predictions_per_model = $num_multimer_predictions_per_model"
+echo "  benchmark = $benchmark"
 
 # Parse input and set defaults
 if [[ "$data_dir" == "" || "$output_dir" == "" || "$fasta_path" == "" || "$max_template_date" == "" ]] ; then
