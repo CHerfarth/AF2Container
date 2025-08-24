@@ -2,6 +2,8 @@
 ## Purpose
 The goal of this repo is to provide the setup for a containerized version of AlphaFold built with Singularity and designed for the Ibex HPC cluster. The setup files include a way to make the Singularity image as well as run it using SLURM
 
+The code is originally sourced from [AlphaFold by Google DeepMind](https://github.com/google-deepmind/alphafold)
+
 ## Setup
 The setup consists of a number of steps but this should produce a fully containerized version of AlphaFold. The steps are as follows:
 1. Change relevant variables in .sh scripts
