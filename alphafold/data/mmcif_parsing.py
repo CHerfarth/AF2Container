@@ -14,14 +14,13 @@
 
 """Parses the mmCIF file format."""
 import collections
-import dataclasses
-import functools
 import io
 from typing import Any, Mapping, Optional, Sequence, Tuple
 
 from absl import logging
 from Bio import PDB
 from Bio.Data import SCOPData
+import dataclasses
 
 # Type aliases:
 ChainId = str
@@ -161,7 +160,6 @@ def mmcif_loop_to_dict(prefix: str,
   return {entry[index]: entry for entry in entries}
 
 
-@functools.lru_cache(16, typed=False)
 def parse(*,
           file_id: str,
           mmcif_string: str,
@@ -181,25 +179,37 @@ def parse(*,
   """
   errors = {}
   try:
-    parser = PDB.MMCIFParser(QUIET=True)
+    #parser = PDB.MMCIFParser(QUIET=True)
+    parser = PDB.MMCIFParser()
     handle = io.StringIO(mmcif_string)
     full_structure = parser.get_structure('', handle)
+    print('The full structure')
+    print(full_structure)
+    
     first_model_structure = _get_first_model(full_structure)
+    print('The first model structure')
+    print(first_model_structure)
     # Extract the _mmcif_dict from the parser, which contains useful fields not
     # reflected in the Biopython structure.
     parsed_info = parser._mmcif_dict  # pylint:disable=protected-access
+    print('The dict:')
+    print(type( parsed_info ))
+    print( parsed_info )
 
     # Ensure all values are lists, even if singletons.
     for key, value in parsed_info.items():
       if not isinstance(value, list):
         parsed_info[key] = [value]
 
-    header = _get_header(parsed_info)
+    try: # Try catch added by Nate
+      header = _get_header(parsed_info)
+    except: header = None 
 
     # Determine the protein chains, and their start numbers according to the
     # internal mmCIF numbering scheme (likely but not guaranteed to be 1).
     valid_chains = _get_protein_chains(parsed_info=parsed_info)
     if not valid_chains:
+      print( 'No valid chains found' )
       return ParsingResult(
           None, {(file_id, ''): 'No protein chains found in this file.'})
     seq_start_num = {chain_id: min([monomer.num for monomer in seq])
@@ -316,7 +326,7 @@ def _get_header(parsed_info: MmCIFDict) -> PdbHeader:
         raw_resolution = parsed_info[res_key][0]
         header['resolution'] = float(raw_resolution)
       except ValueError:
-        logging.debug('Invalid resolution format: %s', parsed_info[res_key])
+        logging.warning('Invalid resolution format: %s', parsed_info[res_key])
 
   return header
 
@@ -347,7 +357,7 @@ def _get_protein_chains(
   """
   # Get polymer information for each entity in the structure.
   entity_poly_seqs = mmcif_loop_to_list('_entity_poly_seq.', parsed_info)
-
+  print( len( entity_poly_seqs ) )
   polymers = collections.defaultdict(list)
   for entity_poly_seq in entity_poly_seqs:
     polymers[entity_poly_seq['_entity_poly_seq.entity_id']].append(

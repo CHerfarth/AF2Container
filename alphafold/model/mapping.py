@@ -15,7 +15,6 @@
 """Specialized mapping functions."""
 
 import functools
-import inspect
 
 from typing import Any, Callable, Optional, Sequence, Union
 
@@ -76,11 +75,8 @@ def sharded_map(
   Returns:
     function with smap applied.
   """
-  if 'split_rng' in inspect.signature(hk.vmap).parameters:
-    vmapped_fun = hk.vmap(fun, in_axes, out_axes, split_rng=False)
-  else:
-    # TODO(tomhennigan): Remove this when older versions of Haiku aren't used.
-    vmapped_fun = hk.vmap(fun, in_axes, out_axes)
+  hk.vmap.require_split_rng = False
+  vmapped_fun = hk.vmap(fun, in_axes, out_axes)
   return sharded_apply(vmapped_fun, shard_size, in_axes, out_axes)
 
 
@@ -159,7 +155,7 @@ def sharded_apply(
             remainder_shape[axis],) + shard_shape[axis + 1:]
 
       out_shapes = jax.tree_map(make_output_shape, out_axes_, shard_shapes,
-                                out_shapes)
+                                     out_shapes)
 
     # Calls dynamic Update slice with different argument order
     # This is here since tree_map only works with positional arguments

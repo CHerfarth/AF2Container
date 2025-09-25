@@ -4,11 +4,12 @@
 #SBATCH -t 01:00:00
 #SBATCH --mem=64G
 #SBATCH --cpus-per-task=4
-#SBATCH --mail-user=arman.thariani@kaust.edu.sa
+#SBATCH --gpus=1
+#SBATCH --mail-user=herfarcf@kaust.edu.sa
 #SBATCH --mail-type=ALL
 
 module load singularity
 
-export XDG_RUNTIME_DIR=/ibex/user/thariaaa/temp
+export XDG_RUNTIME_DIR=/ibex/user/herfarcf/temp
 
 singularity build --fakeroot --force ./AlphaFold.sif ./Singularity.def

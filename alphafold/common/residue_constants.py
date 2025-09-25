@@ -16,8 +16,7 @@
 
 import collections
 import functools
-import os
-from typing import List, Mapping, Tuple
+from typing import Mapping, List, Tuple
 
 import numpy as np
 import tree
@@ -120,7 +119,7 @@ chi_pi_periodic = [
 # 4,5,6,7: 'chi1,2,3,4-group'
 # The atom positions are relative to the axis-end-atom of the corresponding
 # rotation axis. The x-axis is in direction of the rotation axis, and the y-axis
-# is defined such that the dihedral-angle-defining atom (the last entry in
+# is defined such that the dihedral-angle-definiting atom (the last entry in
 # chi_angles_atoms above) is in the xy-plane (with a positive y-coordinate).
 # format: [atomname, group_idx, rel_position]
 rigid_group_atom_positions = {
@@ -399,13 +398,12 @@ def load_stereo_chemical_props() -> Tuple[Mapping[str, List[Bond]],
   ("residue_virtual_bonds").
 
   Returns:
-    residue_bonds: Dict that maps resname -> list of Bond tuples.
-    residue_virtual_bonds: Dict that maps resname -> list of Bond tuples.
-    residue_bond_angles: Dict that maps resname -> list of BondAngle tuples.
+    residue_bonds:  dict that maps resname --> list of Bond tuples
+    residue_virtual_bonds: dict that maps resname --> list of Bond tuples
+    residue_bond_angles: dict that maps resname --> list of BondAngle tuples
   """
-  stereo_chemical_props_path = os.path.join(
-      os.path.dirname(os.path.abspath(__file__)), 'stereo_chemical_props.txt'
-  )
+  stereo_chemical_props_path = (
+      '/home/nrbennet/software/dl/af2/alphafold/alphafold/common/stereo_chemical_props.txt')
   with open(stereo_chemical_props_path, 'rt') as f:
     stereo_chemical_props = f.read()
   lines_iter = iter(stereo_chemical_props.splitlines())

@@ -1,5 +1,10 @@
 dcgm/
+check.point
+model_weights/
+dcgm/
+out.sc
 output/
 *.sif
 check_cuda*
 slurm*
+__pychache__/

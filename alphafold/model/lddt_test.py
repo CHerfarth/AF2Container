@@ -16,8 +16,8 @@
 
 from absl.testing import absltest
 from absl.testing import parameterized
-from alphafold.model import lddt
 import numpy as np
+from alphafold.model import lddt
 
 
 class LddtTest(parameterized.TestCase, absltest.TestCase):

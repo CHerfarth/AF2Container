@@ -16,10 +16,18 @@
 
 import io
 import os
-from alphafold.model import utils
+from typing import List
+
 import haiku as hk
 import numpy as np
+
+from alphafold.model import utils
 # Internal import (7716).
+
+
+def casp_model_names(data_dir: str) -> List[str]:
+  params = os.listdir(os.path.join(data_dir, 'params'))
+  return [os.path.splitext(filename)[0] for filename in params]
 
 
 def get_model_haiku_params(model_name: str, data_dir: str) -> hk.Params:

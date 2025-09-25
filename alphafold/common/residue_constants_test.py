@@ -16,8 +16,9 @@
 
 from absl.testing import absltest
 from absl.testing import parameterized
-from alphafold.common import residue_constants
 import numpy as np
+
+from alphafold.common import residue_constants
 
 
 class ResidueConstantsTest(parameterized.TestCase):

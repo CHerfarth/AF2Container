@@ -106,6 +106,7 @@ dependencies:
   - xz-gpl-tools=5.8.1=hbcc6ac9_2
   - xz-tools=5.8.1=hb9d3cd8_2
   - zlib=1.2.13=h4ab18f5_6
+  - pyrosetta
   - pip:
       - absl-py==1.0.0
       - astunparse==1.6.3
@@ -167,4 +168,4 @@ dependencies:
       - werkzeug==3.0.6
       - wrapt==1.17.2
       - zipp==3.20.2
-prefix: /ibex/user/thariaaa/conda-environments/alphafold
+prefix: /ibex/user/herfarcf/conda-environments/alphafold2

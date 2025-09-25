@@ -15,8 +15,10 @@
 """Contains descriptions of various protein features."""
 import enum
 from typing import Dict, Optional, Sequence, Tuple, Union
-from alphafold.common import residue_constants
+
 import tensorflow.compat.v1 as tf
+
+from alphafold.common import residue_constants
 
 # Type aliases.
 FeaturesMetadata = Dict[str, Tuple[tf.dtypes.DType, Sequence[Union[str, int]]]]
@@ -93,7 +95,7 @@ def shape(feature_name: str,
 
   Args:
     feature_name: String identifier for the feature. If the feature name ends
-      with "_unnormalized", this suffix is stripped off.
+      with "_unnormalized", theis suffix is stripped off.
     num_residues: The number of residues in the current domain - some elements
       of the shape can be dynamic and will be replaced by this value.
     msa_length: The number of sequences in the multiple sequence alignment, some
@@ -127,3 +129,4 @@ def shape(feature_name: str,
       raise ValueError("Could not parse %s (shape: %s) with values: %s" % (
           feature_name, raw_sizes, replacements))
   return sizes
+

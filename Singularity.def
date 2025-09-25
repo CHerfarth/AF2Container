@@ -1,11 +1,13 @@
 Bootstrap: docker
-From: nvcr.io/nvidia/pytorch:23.01-py3
+From: nvcr.io/nvidia/pytorch:24.01-py3
 
 %files
-    environment.yml /opt/environment.yml
+    requirements.txt /opt/requirements.txt
     alphafold /opt/alphafold
-    run_alphafold.py /opt/run_alphafold.py
-    run_alphafold.sh /opt/run_alphafold.sh
+    predict.py /opt/predict.py
+    af2_util.py /opt/af2_util.py
+    model_weights /opt/model_weights
+
 
 %environment
     export PATH=/opt/miniconda/envs/alphafold/bin:$PATH
@@ -36,18 +38,22 @@ From: nvcr.io/nvidia/pytorch:23.01-py3
     conda config --system --add channels conda-forge
     conda config --system --add channels nvidia
     conda config --system --add channels bioconda
+    conda config --system --add channels https://conda.rosettacommons.org
 
-    echo "[INFO] Creating Conda environment from environment.yml"
-    conda env create -f /opt/environment.yml -n alphafold
+    echo "[INFO] Creating Conda environment from requirements.txt"
+    conda env create -f /opt/requirements.txt -n alphafold python=3.9
+    
+    conda run -n alphafold pip install --upgrade pip
+    conda run -n alphafold pip install silent-tools
+    conda run -n alphafold pip install "jax==0.4.20" "jaxlib==0.4.20+cuda12.cudnn89" \
+	 -f https://storage.googleapis.com/jax-releases/jax_cuda_releases.html
 
     echo "[INFO] Cleaning up"
     conda clean -afy
 
-    # Make run script executable
-    chmod +x /opt/run_alphafold.sh
 
 %runscript
-    exec /opt/run_alphafold.sh "$@"
+    exec python3 /opt/predict.py "$@"
 
 %labels
     Author Arman Thariani

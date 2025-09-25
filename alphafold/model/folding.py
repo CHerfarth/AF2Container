@@ -16,6 +16,13 @@
 
 import functools
 from typing import Dict
+
+import haiku as hk
+import jax
+import jax.numpy as jnp
+import ml_collections
+import numpy as np
+
 from alphafold.common import residue_constants
 from alphafold.model import all_atom
 from alphafold.model import common_modules
@@ -23,11 +30,6 @@ from alphafold.model import prng
 from alphafold.model import quat_affine
 from alphafold.model import r3
 from alphafold.model import utils
-import haiku as hk
-import jax
-import jax.numpy as jnp
-import ml_collections
-import numpy as np
 
 
 def squared_difference(x, y):
@@ -331,7 +333,7 @@ class FoldIteration(hk.Module):
     safe_key, *sub_keys = safe_key.split(3)
     sub_keys = iter(sub_keys)
     act = safe_dropout_fn(act, next(sub_keys))
-    act = common_modules.LayerNorm(
+    act = hk.LayerNorm(
         axis=[-1],
         create_scale=True,
         create_offset=True,
@@ -353,7 +355,7 @@ class FoldIteration(hk.Module):
         act = jax.nn.relu(act)
     act += input_act
     act = safe_dropout_fn(act, next(sub_keys))
-    act = common_modules.LayerNorm(
+    act = hk.LayerNorm(
         axis=[-1],
         create_scale=True,
         create_offset=True,
@@ -410,7 +412,7 @@ def generate_affines(representations, batch, config, global_config,
   c = config
   sequence_mask = batch['seq_mask'][:, None]
 
-  act = common_modules.LayerNorm(
+  act = hk.LayerNorm(
       axis=[-1],
       create_scale=True,
       create_offset=True,
@@ -433,7 +435,7 @@ def generate_affines(representations, batch, config, global_config,
                  'affine': affine.to_tensor(),
                  }
 
-  act_2d = common_modules.LayerNorm(
+  act_2d = hk.LayerNorm(
       axis=[-1],
       create_scale=True,
       create_offset=True,
@@ -490,7 +492,7 @@ class StructureModule(hk.Module):
         is_training=is_training,
         safe_key=safe_key)
 
-    ret['representations'] = {'structure_module': output['act']}
+    representations['structure_module'] = output['act']
 
     ret['traj'] = output['affine'] * jnp.array([1.] * 4 +
                                                [c.position_scale] * 3)
@@ -512,8 +514,7 @@ class StructureModule(hk.Module):
     if self.compute_loss:
       return ret
     else:
-      no_loss_features = ['final_atom_positions', 'final_atom_mask',
-                          'representations']
+      no_loss_features = ['final_atom_positions', 'final_atom_mask']
       no_loss_ret = {k: ret[k] for k in no_loss_features}
       return no_loss_ret
 
@@ -750,10 +751,10 @@ def find_structural_violations(
   # Compute the Van der Waals radius for every atom
   # (the first letter of the atom name is the element type).
   # Shape: (N, 14).
-  atomtype_radius = jnp.array([
+  atomtype_radius = [
       residue_constants.van_der_waals_radius[name[0]]
       for name in residue_constants.atom_types
-  ])
+  ]
   atom14_atom_radius = batch['atom14_atom_exists'] * utils.batched_gather(
       atomtype_radius, batch['residx_atom14_to_atom37'])
 
